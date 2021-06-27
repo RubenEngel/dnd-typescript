@@ -6,7 +6,12 @@ module.exports = {
         rules: [
             {
                 test: /\.ts$/,
-                use: 'ts-loader',
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        presets: ['@babel/preset-typescript', '@babel/preset-env']
+                    }
+                },
                 include: [path.resolve(__dirname, 'src')]
             }
         ]

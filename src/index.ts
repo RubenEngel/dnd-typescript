@@ -3,8 +3,8 @@ import PointerTracker from 'pointer-tracker';
 // ------------------- Initialise values 
 
 // create variables for accessing HTML elements
-const dragObject = document.getElementById('drag-object')!
-const dragBoundary = document.getElementById('boundary')!
+const dragObject = document.getElementById('drag-object')!;
+const dragBoundary = document.getElementById('boundary')!;
 
 // size of the draggable object on page load
 let startWidth = dragObject.offsetWidth;
@@ -21,7 +21,7 @@ const maxWidth = startWidth * 4;
 var mouseOffsetX: number;
 var mouseOffsetY: number;
 // distance between two pointers when second is first pressed
-var startPointerDistance: number | null;
+var startPointerDistance: number;
 
 // ------------------- Event handler functions
 
@@ -34,29 +34,26 @@ function handleCentre() {
 // activate handleCentre function when centre button is pressed
 document.getElementById('centre-button')?.addEventListener('click', handleCentre)
 
-function handleReposition(e: any) {
+function handleReposition(e: MouseEvent) {
     // stop transisition animations that may have been activated after pressing centre button
     dragObject.style.setProperty("transition", 'null')
-    // get position of mouse in viewport
-    const mousePositionY = e.clientY as number;
-    const mousePositionX = e.clientX as number;
-    // set position of draggable div and correct for starting mouse offset
-    dragObject.style.setProperty('top', `${mousePositionY - mouseOffsetY}px`);
-    dragObject.style.setProperty('left', `${mousePositionX - mouseOffsetX}px`);
+    // set position of draggable div based on mouse position, and correct for starting mouse offset
+    dragObject.style.setProperty('top', `${e.clientY - mouseOffsetY}px`);
+    dragObject.style.setProperty('left', `${e.clientX - mouseOffsetX}px`);
 }
 
-function handleDragEnd(e: any) {
+function handleDragEnd() {
     // get location of each side of the draggable div, relative to the top and left sides of the window
     const rect = dragObject.getBoundingClientRect();
     // out of bounds on left side
     if (rect.left < 20) {
         console.log('out of bounds')
-        dragObject?.style.setProperty('left', `20px`);
+        dragObject?.style.setProperty('left', '20px');
     }
     // out of bounds on top side
     if (rect.top < 20) {
         console.log('out of bounds')
-        dragObject?.style.setProperty('top', `20px`);
+        dragObject?.style.setProperty('top', '20px');
     }
     // out of bounds on right side
     if (rect.right > window.innerWidth - 20) {
@@ -99,6 +96,7 @@ function handleResize(scaleFactor: number) {
 }
 
 // ------------------- keep element within bounds on window resize
+
 window.addEventListener('resize', () => {
     // get location of each side of the draggable div, relative to the top and left sides of the window
     let rect = dragObject.getBoundingClientRect();
@@ -118,8 +116,14 @@ interface Point {
     clientY: number;
   }
 
-function getDistance(a: Point, b?: Point): number {
-  if (!b) return 0;
+interface MouseEvent {
+    clientX: number;
+    clientY: number;
+    offsetX: number;
+    offsetY: number;
+}
+
+function getDistance(a: Point, b: Point): number {
   return Math.sqrt((b.clientX - a.clientX) ** 2 + (b.clientY - a.clientY) ** 2);
 }
 
@@ -139,9 +143,9 @@ const objectTracker = new PointerTracker(dragObject, {
         // reposition div based on the current location of the pointer
         handleReposition(event)
     },
-    end(event: any) {
+    end() {
         // check that the div is being dropped in the allowable region
-        handleDragEnd(event)
+        handleDragEnd()
     }
 });
 
@@ -162,7 +166,7 @@ const screenTracker = new PointerTracker(dragBoundary, {
     move() {
         // once the pointers are moving, both point trackers are in the currentPointers array
         if (screenTracker.currentPointers.length === 2) {
-            // get current distacne between the two touched points
+            // get current distance between the two touched points
             const newPointerDistance = getDistance(screenTracker.currentPointers[0], screenTracker.currentPointers[1]);
             // calculate the scale factor based on the percentage change of the distance between tounched points
             const scaleFactor = newPointerDistance / startPointerDistance!
